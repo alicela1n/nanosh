@@ -33,6 +33,25 @@ int sh_built_in(char **input, const unsigned int input_length, char **env) {
 	}
     }
 
+    // printenv
+    if (strcmp(input[0], "printenv") == 0) {
+	for (; *env; ++env) {
+	    printf("%s\n", *env);
+	}
+	return 0;
+    }
+
+    // setenv
+    if (strcmp(input[0], "setenv") == 0) {
+	if (input[1] == NULL && input[2] == NULL) {
+	    printf("No environment variable to be set\n");
+	    return 1;
+	} else {
+	    setenv(input[1], input[2], true);
+	    return 0;
+	}
+    }
+
     return -1;
 }
 
