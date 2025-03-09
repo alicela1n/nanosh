@@ -43,7 +43,7 @@ int sh_built_in(char **input, const unsigned int input_length, char **env) {
 
     // setenv
     if (strcmp(input[0], "setenv") == 0) {
-	if (input[1] == NULL && input[2] == NULL) {
+	if (input[1] == NULL || input[2] == NULL) {
 	    printf("No environment variable to be set\n");
 	    return 1;
 	} else {
