@@ -52,12 +52,22 @@ int sh_built_in(char **input, const unsigned int input_length, char **env) {
 	}
     }
 
+    // help
+    if(strcmp(input[0], "help") == 0) {
+	printf("HELP: \n");
+	printf("\tbuiltin commands - \n");
+	printf("\tsetenv (Sets environment variables) \n");
+	printf("\tprintenv (Prints out the environment variables) \n");
+	printf("\tcd (Enters a directory) \n");
+	printf("\texit (Exits the shell) \n");
+    }
     return -1;
 }
 
 // sh_exec(): Execute a command
 int sh_exec(char **input, const unsigned int input_length, char **env) {
     int status = 0;
+
     pid_t pid;
     pid_t wait;
 
