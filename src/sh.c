@@ -60,6 +60,7 @@ int sh_built_in(char **input, const unsigned int input_length, char **env) {
 	printf("\tprintenv (Prints out the environment variables) \n");
 	printf("\tcd (Enters a directory) \n");
 	printf("\texit (Exits the shell) \n");
+	return 0;
     }
     return -1;
 }
@@ -74,7 +75,8 @@ int sh_exec(char **input, const unsigned int input_length, char **env) {
     if (input[0] == NULL)
 	return status;
 
-    if (sh_built_in(input, input_length, env) != -1)
+    status = sh_built_in(input, input_length, env);
+    if (status != -1)
 	return status;
 
     status = posix_spawnp(&pid, input[0], NULL, NULL, input, env);
