@@ -11,6 +11,11 @@
 #include "include/io.h"
 #include "include/str.h"
 
+struct cmd {
+	char **buffer;
+	unsigned int length;
+};
+
 int sh_built_in(char **input, const unsigned int input_length, char **env) {
     // Exit function
     if (strcmp(input[0], "exit") == 0) {
@@ -90,8 +95,8 @@ void sh_loop(int argc, char **argv, char **envp) {
     char *line = NULL;
     char *prompt = "> ";
     unsigned int command_size = 512;
-    char **command = malloc(command_size * sizeof(char *));
-    unsigned int command_length = 0;
+    struct cmd command;
+    command.buffer = malloc(command_size * sizeof(char *));
     char **env = envp;
     int status = 0;
 
@@ -108,19 +113,19 @@ void sh_loop(int argc, char **argv, char **envp) {
 	remove_newline(line);
 
 	// Split the line into an array with the command and it's arguments
-	command_length = split_string(line, command, " ", command_size);
+	command.length = split_string(line, command.buffer, " ", command_size);
 
 	free(line);
 
-	status = sh_exec(command, command_length, env);
+	status = sh_exec(command.buffer, command.length, env);
 	printf("%i ", status);
 
 	// Free the pointers in the command array
-	free_array_of_strings(command, command_length);
+	free_array_of_strings(command.buffer, command.length);
     }
 
     // Clean Up
-    free(command);
+    free(command.buffer);
 }
 
 int main(int argc, char **argv, char **envp) {
