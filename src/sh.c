@@ -12,24 +12,24 @@
 #include "include/str.h"
 
 struct cmd {
-	char **buffer;
-	unsigned int length;
+    char **buffer;
+    unsigned int length;
 };
 
-int sh_built_in(char **input, const unsigned int input_length, char **env) {
+int sh_built_in(struct cmd input, char **env) {
     // Exit function
-    if (strcmp(input[0], "exit") == 0) {
+    if (strcmp(input.buffer[0], "exit") == 0) {
 	exit(0);
     }
 
     // CD into a directory
-    if (strcmp(input[0], "cd") == 0) {
-	if (input[1] == NULL) {
+    if (strcmp(input.buffer[0], "cd") == 0) {
+	if (input.buffer[1] == NULL) {
 	    char *home = getenv("HOME");
 	    chdir(home);
 	    return 0;
 	} else {
-	    if (chdir(input[1]) == 0) {
+	    if (chdir(input.buffer[1]) == 0) {
 		return 0;
 	    } else {
 		printf("cd: no such directory\n");
@@ -39,7 +39,7 @@ int sh_built_in(char **input, const unsigned int input_length, char **env) {
     }
 
     // printenv
-    if (strcmp(input[0], "printenv") == 0) {
+    if (strcmp(input.buffer[0], "printenv") == 0) {
 	for (; *env; ++env) {
 	    printf("%s\n", *env);
 	}
@@ -47,18 +47,18 @@ int sh_built_in(char **input, const unsigned int input_length, char **env) {
     }
 
     // setenv
-    if (strcmp(input[0], "setenv") == 0) {
-	if (input[1] == NULL || input[2] == NULL) {
+    if (strcmp(input.buffer[0], "setenv") == 0) {
+	if (input.buffer[1] == NULL || input.buffer[2] == NULL) {
 	    printf("No environment variable to be set\n");
 	    return 1;
 	} else {
-	    setenv(input[1], input[2], true);
+	    setenv(input.buffer[1], input.buffer[2], true);
 	    return 0;
 	}
     }
 
     // help
-    if(strcmp(input[0], "help") == 0) {
+    if(strcmp(input.buffer[0], "help") == 0) {
 	printf("HELP: \n");
 	printf("\tbuiltin commands - \n");
 	printf("\tsetenv (Sets environment variables) \n");
@@ -71,20 +71,20 @@ int sh_built_in(char **input, const unsigned int input_length, char **env) {
 }
 
 // sh_exec(): Execute a command
-int sh_exec(char **input, const unsigned int input_length, char **env) {
+int sh_exec(struct cmd input, char **env) {
     int status = 0;
 
     pid_t pid;
     pid_t wait;
 
-    if (input[0] == NULL)
+    if (input.buffer[0] == NULL)
 	return status;
 
-    status = sh_built_in(input, input_length, env);
+    status = sh_built_in(input, env);
     if (status != -1)
 	return status;
 
-    status = posix_spawnp(&pid, input[0], NULL, NULL, input, env);
+    status = posix_spawnp(&pid, input.buffer[0], NULL, NULL, input.buffer, env);
     waitpid(pid, &status, 0);
 
     return status;
@@ -117,7 +117,7 @@ void sh_loop(int argc, char **argv, char **envp) {
 
 	free(line);
 
-	status = sh_exec(command.buffer, command.length, env);
+	status = sh_exec(command, env);
 	printf("%i ", status);
 
 	// Free the pointers in the command array
