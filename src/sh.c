@@ -7,14 +7,18 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <readline/readline.h>
 
-#include "include/io.h"
 #include "include/str.h"
 
 struct cmd {
     char **buffer;
     unsigned int length;
 };
+
+void dummy_handler(int dummy) {
+	return;
+}
 
 int sh_built_in(struct cmd input, char **env) {
     // Exit function
@@ -103,8 +107,7 @@ void sh_loop(int argc, char **argv, char **envp) {
     while (true) {
 	signal(SIGINT, dummy_handler);
 
-	printf("%s", prompt);
-	line = get_line(stdin);
+	line = readline(prompt);
 
 	if (!line)
 	    break;
