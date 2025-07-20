@@ -8,8 +8,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include <readline/history.h>
 #include <readline/readline.h>
+#include <readline/history.h>
 
 #include "include/str.h"
 
