@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <readline/readline.h>
+#include <readline/history.h>
 
 #include "include/str.h"
 
@@ -41,6 +42,25 @@ int sh_built_in(struct cmd input, char **env) {
 	    }
 	}
     }
+
+	// history
+	if (strcmp(input.buffer[0], "history") == 0) {
+		HISTORY_STATE *history_state = history_get_history_state();
+		HIST_ENTRY **history = history_list();
+
+		if (history_state->length == 0) {
+			return 0;
+		}
+
+		for (int i = 0; i < history_state->length; i++) {
+			printf("%s\n", history[i]->line);
+			free_history_entry(history[i]);
+		}
+
+		free(history);
+		free(history_state);
+		return 0;
+	}
 
     // printenv
     if (strcmp(input.buffer[0], "printenv") == 0) {
@@ -98,9 +118,7 @@ int sh_exec(struct cmd input, char **env) {
 void sh_loop(int argc, char **argv, char **envp) {
     char *line = NULL;
     char *prompt = "> ";
-    unsigned int command_size = 512;
-    struct cmd command;
-    command.buffer = malloc(command_size * sizeof(char *));
+	struct cmd command;
     char **env = envp;
     int status = 0;
 
@@ -114,6 +132,12 @@ void sh_loop(int argc, char **argv, char **envp) {
 
 	// Remove the new line
 	remove_newline(line);
+
+	// Add command to history
+	add_history(line);
+
+	const unsigned int command_size = calculate_size_of_split_string(line, " ");
+	command.buffer = malloc(command_size * sizeof(char *));
 
 	// Split the line into an array with the command and it's arguments
 	command.length = split_string(line, command.buffer, " ", command_size);
@@ -132,6 +156,7 @@ void sh_loop(int argc, char **argv, char **envp) {
 }
 
 int main(int argc, char **argv, char **envp) {
+	using_history();
     sh_loop(argc, argv, envp);
     return EXIT_SUCCESS;
 }

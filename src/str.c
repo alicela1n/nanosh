@@ -29,6 +29,18 @@ unsigned int split_string(char *input, char **output, const char *delimiter, con
     return length;
 }
 
+// calculate_size_of_split_string(): Just calculate the size of the array for the split string
+unsigned int calculate_size_of_split_string(char *input, const char *delimiter) {
+    char *saveptr;
+    char *token = strtok_r(input, delimiter, &saveptr);
+    unsigned int length = 0;
+
+    while (token != NULL) {
+        token = strtok_r(NULL, delimiter, &saveptr);
+        length++;
+    }
+}
+
 // remove_newline(): Remove a new line at the end of a string
 void remove_newline(char *input) {
     if (input[strlen(input) - 1] == '\n')
