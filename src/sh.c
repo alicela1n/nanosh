@@ -1,6 +1,4 @@
 #include <errno.h>
-#include <readline/history.h>
-#include <readline/readline.h>
 #include <spawn.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -9,6 +7,9 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
+#include <readline/history.h>
+#include <readline/readline.h>
 
 #include "include/str.h"
 
