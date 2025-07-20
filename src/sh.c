@@ -136,6 +136,11 @@ void sh_loop(int argc, char **argv, char **envp) {
 
 		const unsigned int command_size = calculate_size_of_split_string(line, " ");
 		command.buffer = malloc(command_size * sizeof(char *));
+		// Abort if malloc fails
+		if (!command.buffer) {
+			printf("Failed to allocate command buffer!\n");
+			abort();
+		}
 
 		// Split the line into an array with the command and it's arguments
 		command.length = split_string(line, command.buffer, " ", command_size);
