@@ -13,27 +13,30 @@
 
 #include "include/str.h"
 
+#define MAX_CMDS 100
+
 struct cmd {
-	char **buffer;
-	unsigned int length;
+	int number_of_commands;
+	char **cmd[MAX_CMDS]; // Array of commands
+	unsigned int length[MAX_CMDS]; // Length of each command
 };
 
 void dummy_handler(int dummy) { return; }
 
-int sh_built_in(struct cmd input, char **env) {
+int sh_built_in(struct cmd input, char **env, unsigned int index) {
 	// Exit function
-	if (strcmp(input.buffer[0], "exit") == 0) {
+	if (strcmp(input.cmd[index][0], "exit") == 0) {
 		exit(0);
 	}
 
 	// CD into a directory
-	if (strcmp(input.buffer[0], "cd") == 0) {
-		if (input.buffer[1] == NULL) {
+	if (strcmp(input.cmd[index][0], "cd") == 0) {
+		if (input.cmd[index][1] == NULL) {
 			char *home = getenv("HOME");
 			chdir(home);
 			return 0;
 		} else {
-			if (chdir(input.buffer[1]) == 0) {
+			if (chdir(input.cmd[index][1]) == 0) {
 				return 0;
 			} else {
 				printf("cd: no such directory\n");
@@ -43,7 +46,7 @@ int sh_built_in(struct cmd input, char **env) {
 	}
 
 	// history
-	if (strcmp(input.buffer[0], "history") == 0) {
+	if (strcmp(input.cmd[index][0], "history") == 0) {
 		HISTORY_STATE *history_state = history_get_history_state();
 		HIST_ENTRY **history = history_list();
 
@@ -62,7 +65,7 @@ int sh_built_in(struct cmd input, char **env) {
 	}
 
 	// printenv
-	if (strcmp(input.buffer[0], "printenv") == 0) {
+	if (strcmp(input.cmd[index][0], "printenv") == 0) {
 		for (; *env; ++env) {
 			printf("%s\n", *env);
 		}
@@ -70,18 +73,18 @@ int sh_built_in(struct cmd input, char **env) {
 	}
 
 	// setenv
-	if (strcmp(input.buffer[0], "setenv") == 0) {
-		if (input.buffer[1] == NULL || input.buffer[2] == NULL) {
+	if (strcmp(input.cmd[index][0], "setenv") == 0) {
+		if (input.cmd[index][1] == NULL || input.cmd[index][2] == NULL) {
 			printf("No environment variable to be set\n");
 			return 1;
 		} else {
-			setenv(input.buffer[1], input.buffer[2], true);
+			setenv(input.cmd[index][1], input.cmd[index][2], true);
 			return 0;
 		}
 	}
 
 	// help
-	if (strcmp(input.buffer[0], "help") == 0) {
+	if (strcmp(input.cmd[index][0], "help") == 0) {
 		printf("HELP: \n");
 		printf("\tbuiltin commands - \n");
 		printf("\tsetenv (Sets environment variables) \n");
@@ -94,20 +97,20 @@ int sh_built_in(struct cmd input, char **env) {
 }
 
 // sh_exec(): Execute a command
-int sh_exec(struct cmd input, char **env) {
+int sh_exec(struct cmd input, char **env, unsigned int index) {
 	int status = 0;
 
 	pid_t pid;
 	pid_t wait;
 
-	if (input.buffer[0] == NULL)
+	if (input.cmd[index][0] == NULL)
 		return status;
 
-	status = sh_built_in(input, env);
+	status = sh_built_in(input, env, 0);
 	if (status != -1)
 		return status;
 
-	status = posix_spawnp(&pid, input.buffer[0], NULL, NULL, input.buffer, env);
+	status = posix_spawnp(&pid, input.cmd[index][0], NULL, NULL, input.cmd[index], env);
 	waitpid(pid, &status, 0);
 
 	return status;
@@ -136,27 +139,27 @@ void sh_loop(int argc, char **argv, char **envp) {
 		add_history(line);
 
 		const unsigned int command_size = calculate_size_of_split_string(line, " ");
-		command.buffer = malloc(command_size * sizeof(char *));
+		command.cmd[0] = malloc(command_size * sizeof(char *));
 		// Abort if malloc fails
-		if (!command.buffer) {
+		if (!command.cmd[0]) {
 			printf("Failed to allocate command buffer!\n");
 			abort();
 		}
 
 		// Split the line into an array with the command and it's arguments
-		command.length = split_string(line, command.buffer, " ", command_size);
+		command.length[0] = split_string(line, command.cmd[0], " ", command_size);
 
 		free(line);
 
-		status = sh_exec(command, env);
+		status = sh_exec(command, env, 0);
 		printf("%i ", status);
 
 		// Free the pointers in the command array
-		free_array_of_strings(command.buffer, command.length);
+		free_array_of_strings(command.cmd[0], command.length[0]);
 	}
 
 	// Clean Up
-	free(command.buffer);
+	free(command.cmd[0]);
 }
 
 int main(int argc, char **argv, char **envp) {
